@@ -1,0 +1,10 @@
+/home/j2kevin18/2024s-rcore-j2kevin18/os/target/riscv64gc-unknown-none-elf/release/deps/liblog-87dd55ac1bc8dd25.rmeta: /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/lib.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/macros.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/serde.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/__private_api.rs
+
+/home/j2kevin18/2024s-rcore-j2kevin18/os/target/riscv64gc-unknown-none-elf/release/deps/liblog-87dd55ac1bc8dd25.rlib: /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/lib.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/macros.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/serde.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/__private_api.rs
+
+/home/j2kevin18/2024s-rcore-j2kevin18/os/target/riscv64gc-unknown-none-elf/release/deps/log-87dd55ac1bc8dd25.d: /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/lib.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/macros.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/serde.rs /home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/__private_api.rs
+
+/home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/lib.rs:
+/home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/macros.rs:
+/home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/serde.rs:
+/home/j2kevin18/.cargo/registry/src/mirrors.tuna.tsinghua.edu.cn-2eab394af869c8a2/log-0.4.21/src/__private_api.rs:

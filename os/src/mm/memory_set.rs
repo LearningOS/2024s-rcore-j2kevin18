@@ -233,6 +233,84 @@ impl MemorySet {
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)
     }
+    /// Check before mapping
+    pub fn check_before_map(&mut self, start: VirtPageNum, end: VirtPageNum) -> bool {
+        for s in start.0..end.0{
+            for i in 0..self.areas.len(){
+                let area=self.areas.get(i).unwrap();
+                if area.data_frames.contains_key(&VirtPageNum::from(s)) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+    
+    /// Check before unmapping
+    pub fn check_before_unmap(&mut self, start: VirtPageNum, end: VirtPageNum) -> bool {
+        for s in start.0..end.0{
+            let mut contain = false;
+            for i in 0..self.areas.len(){
+                let area=self.areas.get(i).unwrap();
+                if area.data_frames.contains_key(&VirtPageNum::from(s)) {
+                    contain = true;
+                    break;
+                }
+            }
+            if !contain {
+                return false;
+            }
+        }
+        true
+    }   
+    
+    /// 
+    pub fn seq_mem_map(&mut self,start:VirtPageNum,end:VirtPageNum,permission:MapPermission){
+        let mut min=end.0;
+        let mut max=start.0;
+        for s in start.0..end.0{
+            let mut contain=false;
+            for i in 0..self.areas.len(){
+                let area=self.areas.get(i).unwrap();
+                if VirtPageNum::from(area.vpn_range.get_start().0).0<=s&&s<VirtPageNum::from(area.vpn_range.get_end().0).0{
+                    self.areas[i].map_one(&mut self.page_table, VirtPageNum::from(s));
+                    contain=true;
+                }
+            }
+            if !contain{
+                if s<min{
+                    min=s;
+                }
+                if s>max{
+                    max=s;
+                }
+            }
+        }
+        max+=1;
+        self.insert_framed_area(VirtAddr::from(min*PAGE_SIZE), VirtAddr::from(max*PAGE_SIZE), permission);
+    }
+
+    ///
+    pub fn seq_mem_unmap(&mut self,start:VirtPageNum,end:VirtPageNum){
+        for s in start.0..end.0{
+            let mut i:usize = 0;
+            while i<self.areas.len(){
+                if self.areas[i].data_frames.contains_key(&VirtPageNum::from(s)){
+                    self.areas[i].unmap_one(&mut self.page_table, VirtPageNum::from(s));
+                    if self.areas[i].data_frames.is_empty() {
+                        self.areas.remove(i);
+                    }
+                    else {
+                        i += 1;
+                    }
+                }
+                else {
+                    i += 1;
+                }
+            }
+        }
+    }
+
     /// shrink the area to new_end
     #[allow(unused)]
     pub fn shrink_to(&mut self, start: VirtAddr, new_end: VirtAddr) -> bool {

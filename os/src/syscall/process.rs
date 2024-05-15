@@ -3,7 +3,10 @@ use crate::{
     config::MAX_SYSCALL_NUM,
     task::{
         change_program_brk, exit_current_and_run_next, suspend_current_and_run_next, TaskStatus,
+        map, unmap, current_user_token, get_syscall_times, get_first_time,
     },
+    mm::{get_easy_ptr_from_token, VirtAddr, MapPermission},
+    timer::get_time_us,
 };
 
 #[repr(C)]
@@ -43,7 +46,14 @@ pub fn sys_yield() -> isize {
 /// HINT: What if [`TimeVal`] is splitted by two pages ?
 pub fn sys_get_time(_ts: *mut TimeVal, _tz: usize) -> isize {
     trace!("kernel: sys_get_time");
-    -1
+    let _us = get_time_us();
+    let token = current_user_token();
+    let ts: &mut TimeVal = get_easy_ptr_from_token(token, _ts as *const u8);
+    *ts = TimeVal {
+        sec: _us / 1_000_000,
+        usec: _us%1_000_000,
+    };
+    0
 }
 
 /// YOUR JOB: Finish sys_task_info to pass testcases
@@ -51,20 +61,60 @@ pub fn sys_get_time(_ts: *mut TimeVal, _tz: usize) -> isize {
 /// HINT: What if [`TaskInfo`] is splitted by two pages ?
 pub fn sys_task_info(_ti: *mut TaskInfo) -> isize {
     trace!("kernel: sys_task_info NOT IMPLEMENTED YET!");
-    -1
+    let _us = get_time_us();
+    let token = current_user_token();
+    let ti: &mut TaskInfo = get_easy_ptr_from_token(token, _ti as *const u8);
+    *ti = TaskInfo {
+       status: TaskStatus::Running,
+       syscall_times: get_syscall_times(),
+       time: (_us - get_first_time()) / 1000
+    };
+    0
 }
 
 // YOUR JOB: Implement mmap.
 pub fn sys_mmap(_start: usize, _len: usize, _port: usize) -> isize {
     trace!("kernel: sys_mmap NOT IMPLEMENTED YET!");
-    -1
+    let start_addr = VirtAddr::from(_start);
+    let start_offset : usize = start_addr.page_offset();
+    if start_offset>0 || _port & !0x7 != 0 || _port & 0x7 == 0 {
+        return -1;
+    }
+
+    let end_addr:VirtAddr = VirtAddr::from(_start + _len);
+    let end_page_num = end_addr.ceil();
+    let mut permission=MapPermission::U;
+    if _port&0x1!=0 {
+        permission |= MapPermission::R;
+    }
+    if _port&0x2!=0 {
+        permission |= MapPermission::W;
+    }
+    if _port&0x4!=0 {
+        permission |= MapPermission::X;
+    }
+    if !map(start_addr.floor(), end_page_num, permission){
+        return -1;
+    }
+    0
 }
 
 // YOUR JOB: Implement munmap.
 pub fn sys_munmap(_start: usize, _len: usize) -> isize {
     trace!("kernel: sys_munmap NOT IMPLEMENTED YET!");
-    -1
+    let start_addr=VirtAddr::from(_start);
+    let start_offset : usize = start_addr.page_offset();
+    if start_offset>0 {
+        return -1;
+    }
+    let end_addr=VirtAddr::from(_start+_len);
+    let end_page_num=end_addr.ceil();
+    if !unmap(start_addr.floor(),end_page_num){
+        return -1;
+    }
+    0
 }
+
 /// change data segment size
 pub fn sys_sbrk(size: i32) -> isize {
     trace!("kernel: sys_sbrk");

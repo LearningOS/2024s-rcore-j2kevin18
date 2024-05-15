@@ -15,6 +15,8 @@ mod switch;
 mod task;
 
 use crate::loader::{get_app_data, get_num_app};
+use crate::config::MAX_SYSCALL_NUM;
+use crate::mm::{VirtPageNum, MapPermission};
 use crate::sync::UPSafeCell;
 use crate::trap::TrapContext;
 use alloc::vec::Vec;
@@ -153,6 +155,46 @@ impl TaskManager {
             panic!("All applications completed!");
         }
     }
+
+    fn update_cur_task(&self, syscall_id:usize) {
+        let mut inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        inner.tasks[current].syscall_times[syscall_id] += 1;
+    }
+
+
+    fn get_syscall_times(&self)->[u32; MAX_SYSCALL_NUM]{
+        let inner=self.inner.exclusive_access();
+        let current=inner.current_task;
+        inner.tasks[current].syscall_times
+    }
+
+    fn get_first_time(&self)->usize{
+        let inner=self.inner.exclusive_access();
+        let current=inner.current_task;
+        inner.tasks[current].first_time
+    }
+
+
+    fn map(&self, start:VirtPageNum, end:VirtPageNum, permission:MapPermission ) -> bool{
+        let mut inner = self.inner.exclusive_access();
+        let current: usize = inner.current_task;
+        if inner.tasks[current].memory_set.check_before_map(start, end) {
+            inner.tasks[current].memory_set.seq_mem_map(start, end, permission);
+            return true;
+        }
+        false
+    }
+
+    fn unmap(&self, start:VirtPageNum, end:VirtPageNum) -> bool{
+        let mut inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        if inner.tasks[current].memory_set.check_before_unmap(start, end) {
+            inner.tasks[current].memory_set.seq_mem_unmap(start, end);
+            return true;
+        }
+        false
+    }
 }
 
 /// Run the first task in task list.
@@ -196,6 +238,31 @@ pub fn current_user_token() -> usize {
 /// Get the current 'Running' task's trap contexts.
 pub fn current_trap_cx() -> &'static mut TrapContext {
     TASK_MANAGER.get_current_trap_cx()
+}
+
+/// update current task
+pub fn update_cur_task(syscall_id : usize) {
+    TASK_MANAGER.update_cur_task(syscall_id);
+}
+
+/// get syscall time
+pub fn get_syscall_times() -> [u32; MAX_SYSCALL_NUM] {
+    TASK_MANAGER.get_syscall_times()
+}
+
+///get first time
+pub fn get_first_time() -> usize {
+    TASK_MANAGER.get_first_time()
+}
+
+/// map
+pub fn map(start:VirtPageNum, end:VirtPageNum, permission:MapPermission) -> bool{
+    TASK_MANAGER.map(start, end, permission)
+}
+
+/// unmap
+pub fn unmap(start:VirtPageNum, end:VirtPageNum) -> bool{
+    TASK_MANAGER.unmap(start, end)
 }
 
 /// Change the current 'Running' task's program break

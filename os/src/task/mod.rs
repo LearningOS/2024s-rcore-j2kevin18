@@ -21,7 +21,11 @@ mod switch;
 #[allow(clippy::module_inception)]
 mod task;
 
-use crate::loader::get_app_data_by_name;
+use crate::{
+    loader::get_app_data_by_name,
+    mm::{MapPermission, VirtPageNum},
+    config::MAX_SYSCALL_NUM,
+};
 use alloc::sync::Arc;
 use lazy_static::*;
 pub use manager::{fetch_task, TaskManager};
@@ -114,4 +118,47 @@ lazy_static! {
 ///Add init process to the manager
 pub fn add_initproc() {
     add_task(INITPROC.clone());
+}
+
+///Update current task
+pub fn update_cur_task(syscall_id : usize) {
+    let task = current_task().unwrap();
+    let mut inner = task.inner_exclusive_access();
+    inner.syscall_times[syscall_id] += 1;
+}
+
+///Get a list of syscall times.
+pub fn get_syscall_times() -> [u32; MAX_SYSCALL_NUM] {
+    let task = current_task().unwrap();
+    let inner = task.inner_exclusive_access();
+    inner.syscall_times
+}
+
+///Get the first time of running task.
+pub fn get_first_time() -> usize {
+    let task = current_task().unwrap();
+    let inner = task.inner_exclusive_access();
+    inner.first_time
+}
+
+///map
+pub fn map(start:VirtPageNum, end:VirtPageNum, permission:MapPermission) -> bool{
+    let task = current_task().unwrap();
+    let mut inner = task.inner_exclusive_access();
+    if inner.memory_set.check_before_map(start, end) {
+        return inner.memory_set.seq_mem_map(start, end, permission);
+    }
+    false
+
+}
+
+///unmap
+pub fn unmap(start:VirtPageNum, end:VirtPageNum) -> bool{
+    let task = current_task().unwrap();
+    let mut inner = task.inner_exclusive_access();
+    if inner.memory_set.check_before_unmap(start, end) {
+        inner.memory_set.seq_mem_unmap(start, end);
+        return true;
+    }
+    false
 }

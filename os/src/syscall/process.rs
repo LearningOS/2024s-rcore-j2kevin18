@@ -51,7 +51,7 @@ pub fn sys_get_time(_ts: *mut TimeVal, _tz: usize) -> isize {
     let ts: &mut TimeVal = get_easy_ptr_from_token(token, _ts as *const u8);
     *ts = TimeVal {
         sec: _us / 1_000_000,
-        usec: _us%1_000_000,
+        usec: _us % 1_000_000,
     };
     0
 }

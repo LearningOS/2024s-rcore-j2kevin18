@@ -49,6 +49,8 @@ pub struct ProcessControlBlockInner {
     pub semaphore_list: Vec<Option<Arc<Semaphore>>>,
     /// condvar list
     pub condvar_list: Vec<Option<Arc<Condvar>>>,
+    /// detect whether deadlock or not 
+    pub detect: usize,
 }
 
 impl ProcessControlBlockInner {
@@ -119,6 +121,7 @@ impl ProcessControlBlock {
                     mutex_list: Vec::new(),
                     semaphore_list: Vec::new(),
                     condvar_list: Vec::new(),
+                    detect:0,
                 })
             },
         });
@@ -245,6 +248,7 @@ impl ProcessControlBlock {
                     mutex_list: Vec::new(),
                     semaphore_list: Vec::new(),
                     condvar_list: Vec::new(),
+                    detect:0,
                 })
             },
         });
@@ -281,5 +285,30 @@ impl ProcessControlBlock {
     /// get pid
     pub fn getpid(&self) -> usize {
         self.pid.0
+    }
+    ///kernel process
+    pub fn kernel_process() -> Arc<Self> {
+        let memory_set = MemorySet::kernel_copy();
+        let process = Arc::new(ProcessControlBlock {
+            pid: super::pid_alloc(),
+            inner: unsafe {
+                UPSafeCell::new(ProcessControlBlockInner {
+                    is_zombie: false,
+                    memory_set: memory_set,
+                    parent: None,
+                    children: Vec::new(),
+                    exit_code: 0,
+                    fd_table: Vec::new(),
+                    signals: SignalFlags::empty(),
+                    tasks: Vec::new(),
+                    task_res_allocator: RecycleAllocator::new(),
+                    mutex_list: Vec::new(),
+                    semaphore_list: Vec::new(),
+                    condvar_list: Vec::new(),
+                    detect: 0
+                })
+            },
+        });
+        process
     }
 }

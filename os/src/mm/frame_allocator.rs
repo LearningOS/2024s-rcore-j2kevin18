@@ -8,6 +8,7 @@ use core::fmt::{self, Debug, Formatter};
 use lazy_static::*;
 
 /// tracker for physical page frame allocation and deallocation
+#[derive(Clone)]
 pub struct FrameTracker {
     /// physical page number
     pub ppn: PhysPageNum,

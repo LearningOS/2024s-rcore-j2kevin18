@@ -53,6 +53,14 @@ impl MemorySet {
             areas: Vec::new(),
         }
     }
+    ///Copy kernel
+    pub fn kernel_copy() -> Self {
+        let areas = KERNEL_SPACE.exclusive_access().areas.clone();
+        Self {
+            page_table: PageTable::from_token(kernel_token()),
+            areas: areas,
+        }
+    }
     /// Get he page table token
     pub fn token(&self) -> usize {
         self.page_table.token()
@@ -295,6 +303,7 @@ impl MemorySet {
     }
 }
 
+#[derive(Clone)]
 pub struct MapArea {
     pub vpn_range: VPNRange,
     pub data_frames: BTreeMap<VirtPageNum, FrameTracker>,
